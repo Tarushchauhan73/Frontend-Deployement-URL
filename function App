@@ -1,0 +1,107 @@
+import React, { useState } from "react";
+import axios from "axios";
+
+function App() {
+  const [inputJson, setInputJson] = useState("");
+  const [response, setResponse] = useState(null);
+  const [error, setError] = useState("");
+  const [selectedOptions, setSelectedOptions] = useState([]);
+
+  const handleSubmit = async () => {
+    try {
+      // Validate JSON input
+      const parsedInput = JSON.parse(inputJson);
+      if (!parsedInput.data || !Array.isArray(parsedInput.data)) {
+        throw new Error("Invalid JSON format. Expected { 'data': [...] }");
+      }
+
+      // Call the backend API
+      const backendUrl = "https://<your-backend-url>/bfhl"; // Replace with your backend URL
+      const result = await axios.post(backendUrl, parsedInput);
+      setResponse(result.data);
+      setError("");
+    } catch (err) {
+      setError(err.message);
+      setResponse(null);
+    }
+  };
+
+  const handleOptionChange = (e) => {
+    const { value, checked } = e.target;
+    if (checked) {
+      setSelectedOptions([...selectedOptions, value]);
+    } else {
+      setSelectedOptions(selectedOptions.filter((option) => option !== value));
+    }
+  };
+
+  const renderResponse = () => {
+    if (!response) return null;
+
+    return (
+      <div>
+        <h3>Response:</h3>
+        {selectedOptions.includes("alphabets") && (
+          <p>Alphabets: {response.alphabets.join(", ")}</p>
+        )}
+        {selectedOptions.includes("numbers") && (
+          <p>Numbers: {response.numbers.join(", ")}</p>
+        )}
+        {selectedOptions.includes("highest_alphabet") && (
+          <p>Highest Alphabet: {response.highest_alphabet.join(", ")}</p>
+        )}
+      </div>
+    );
+  };
+
+  return (
+    <div className="App">
+      <h1>ABCD123</h1> {/* Replace with your roll number */}
+      <div>
+        <textarea
+          placeholder='Enter JSON input, e.g., { "data": ["A", "C", "z"] }'
+          value={inputJson}
+          onChange={(e) => setInputJson(e.target.value)}
+          rows={5}
+          cols={50}
+        />
+      </div>
+      <div>
+        <button onClick={handleSubmit}>Submit</button>
+      </div>
+      {error && <p style={{ color: "red" }}>{error}</p>}
+      {response && (
+        <div>
+          <h3>Select Options to Display:</h3>
+          <label>
+            <input
+              type="checkbox"
+              value="alphabets"
+              onChange={handleOptionChange}
+            />
+            Alphabets
+          </label>
+          <label>
+            <input
+              type="checkbox"
+              value="numbers"
+              onChange={handleOptionChange}
+            />
+            Numbers
+          </label>
+          <label>
+            <input
+              type="checkbox"
+              value="highest_alphabet"
+              onChange={handleOptionChange}
+            />
+            Highest Alphabet
+          </label>
+          {renderResponse()}
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default App;
